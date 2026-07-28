@@ -1,0 +1,42 @@
+/* Tailwind utilities only (no preflight) so it doesn't fight MUI's CssBaseline in /admin */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/*
+ * Small hand-picked reset (not full Tailwind preflight — that would fight MUI's own
+ * CssBaseline once /admin mounts). Covers the handful of native elements the public
+ * pages actually use raw: lists, buttons, and box-sizing.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100svh;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-600;
+  }
+}
