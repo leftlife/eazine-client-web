@@ -6,7 +6,7 @@ import { useCountStore } from '@/api/store/countStore'
 
 export function UseCaseListPage() {
   const [page, setPage] = useState(0)
-  const { data, isLoading, isError, error } = useUseCaseList({ page, size: 12 })
+  const { data, isLoading, isError } = useUseCaseList({ page, size: 12 })
 
   const count = useCountStore(state => state.count)
   const double = useCountStore(state => state.double)
