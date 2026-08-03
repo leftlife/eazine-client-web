@@ -1,4 +1,5 @@
-import { apiClient } from '@/api/client'
+import { apiClient, refreshAccessToken } from '@/api/client'
+import { setAccessToken } from '@/api/session'
 import type { AdminPermission, AdminRole, ApiSingleResponse } from '@/api/types'
 
 export interface AdminProfile {
@@ -10,13 +11,14 @@ export interface AdminProfile {
 }
 
 export interface AdminIdentity extends AdminProfile {
-  sessionExpiresAt: string
+  accessTokenExpiresAt: string
 }
 
 interface LoginApiData {
   admin: AdminProfile
-  csrfToken: string
-  sessionExpiresAt: string
+  accessToken: string
+  accessTokenExpiresAt: string
+  refreshTokenExpiresAt: string
 }
 
 export async function login(loginId: string, password: string) {
@@ -33,12 +35,22 @@ export async function login(loginId: string, password: string) {
     loginId,
     password,
   })
-  const { admin, csrfToken, sessionExpiresAt } = res.data.data
-  return { identity: { ...admin, sessionExpiresAt } satisfies AdminIdentity, csrfToken }
+  const { admin, accessToken, accessTokenExpiresAt } = res.data.data
+  setAccessToken(accessToken)
+  return { identity: { ...admin, accessTokenExpiresAt } satisfies AdminIdentity }
 }
 
 export async function logout() {
-  await apiClient.post('/admin/auth/logout')
+  try {
+    await apiClient.post('/admin/auth/logout')
+  } finally {
+    setAccessToken(null)
+  }
+}
+
+/** Trades the HttpOnly Refresh Token cookie for a fresh Access Token — used to restore a session on hard reload. */
+export async function restoreAccessToken() {
+  await refreshAccessToken()
 }
 
 export async function fetchMe() {

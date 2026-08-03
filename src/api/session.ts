@@ -1,16 +1,17 @@
 /**
- * In-memory holder for the admin CSRF token issued at login (POST /admin/auth/login).
- * Never persisted to storage — it lives only for the tab's lifetime, matching the
- * HttpOnly session-cookie model described in the API spec (section 3.1).
+ * In-memory holder for the admin Access Token issued at login (POST /admin/auth/login)
+ * or refresh (POST /admin/auth/refresh). Never persisted to storage — it lives only for
+ * the tab's lifetime. The Refresh Token is issued as an HttpOnly cookie the browser
+ * manages automatically; JS never sees it.
  */
-let csrfToken: string | null = null
+let accessToken: string | null = null
 
-export function setCsrfToken(token: string | null) {
-  csrfToken = token
+export function setAccessToken(token: string | null) {
+  accessToken = token
 }
 
-export function getCsrfToken() {
-  return csrfToken
+export function getAccessToken() {
+  return accessToken
 }
 
 type UnauthenticatedHandler = () => void

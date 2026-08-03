@@ -36,7 +36,7 @@ function buildIdentity(): AdminIdentity {
     name: '임시 관리자 (백엔드 미연동)',
     roles: ['SUPER_ADMIN'],
     permissions: DEV_MOCK_PERMISSIONS,
-    sessionExpiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+    accessTokenExpiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
   }
 }
 
@@ -47,7 +47,7 @@ export function isDevMockLogin(loginId: string, password: string) {
 /** Called after isDevMockLogin() confirms a match. Persists across reloads via sessionStorage. */
 export function startDevMockSession() {
   sessionStorage.setItem(STORAGE_KEY, '1')
-  return { identity: buildIdentity(), csrfToken: 'dev-mock-csrf-token' }
+  return { identity: buildIdentity() }
 }
 
 /** Used on app boot instead of GET /admin/auth/me when a mock session is active. */

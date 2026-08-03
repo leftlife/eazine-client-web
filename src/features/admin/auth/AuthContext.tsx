@@ -1,9 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { setCsrfToken, setUnauthenticatedHandler } from '@/api/session'
+import { setAccessToken, setUnauthenticatedHandler } from '@/api/session'
 import { hasPermission } from '@/shared/utils/permissions'
 import type { AdminPermission } from '@/api/types'
-import { fetchMe, login as loginRequest, logout as logoutRequest, type AdminIdentity } from './api'
+import {
+  fetchMe,
+  login as loginRequest,
+  logout as logoutRequest,
+  restoreAccessToken,
+  type AdminIdentity,
+} from './api'
 import { DEV_MOCK_ADMIN_ID } from './devMockConstants'
 
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
@@ -23,7 +29,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState<AdminIdentity | null>(null)
 
   const clearSession = useCallback(() => {
-    setCsrfToken(null)
+    setAccessToken(null)
     setAdmin(null)
     setStatus('unauthenticated')
   }, [])
@@ -49,11 +55,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Restores an existing session cookie on hard reload. NOTE: the API spec doesn't
-      // define how to obtain a fresh CSRF token on restore (only /admin/auth/login returns
-      // one) — until that's confirmed (see 기획서 section 18), a reloaded admin session can
-      // read data but write requests will 403 CSRF_INVALID until the admin logs in again.
+      // The Access Token only lives in memory, so a hard reload loses it — trade the
+      // HttpOnly Refresh Token cookie for a fresh one before fetching identity.
       try {
+        await restoreAccessToken()
         const identity = await fetchMe()
         if (!cancelled) {
           setAdmin(identity)
@@ -71,8 +76,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(async (loginId: string, password: string) => {
-    const { identity, csrfToken } = await loginRequest(loginId, password)
-    setCsrfToken(csrfToken)
+    const { identity } = await loginRequest(loginId, password)
     setAdmin(identity)
     setStatus('authenticated')
   }, [])
